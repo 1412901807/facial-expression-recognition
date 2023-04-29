@@ -11,15 +11,17 @@ conda install matplotlib
 conda install pandas
 conda install tensorflow-gpu==2.2.0
 ```
+
+
+## 数据集
+下载fer2013.csv文件并将其放在data文件夹下
+
 ## 训练
 ```bash
 python train_test_split.py 
 python csv_classifier.py
 python train_test.py
 ```
-
-## 数据集
-这里是关于数据集的详细信息。
 
 ## 模型
 这里是关于模型的详细信息。
