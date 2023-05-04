@@ -17,7 +17,7 @@ def get_model(input_shape, num_classes):
     model = Model(inputs=base_model.input, outputs=predictions)
     
     # 编译模型
-    optimizer = Adam(lr=0.001)
+    optimizer = tf.optimizers.Adam(lr=0.001)
     loss = 'categorical_crossentropy'
     metrics = ['accuracy']
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
