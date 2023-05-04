@@ -2,10 +2,10 @@ from tensorflow import keras
 
 def get_model(width, height, num_classes):
     model = keras.models.Sequential()
-    # 卷积层1，32个3*3的卷积核，输出维度为(48,48,32)。
+    # 卷积层1，32个3*3的卷积核，输出维度为(48,48,32)，因为是灰度图像所以是(width,height,1)的
     model.add(keras.layers.Conv2D(filters=32,kernel_size=3,
                                 padding='same',activation='relu',
-                                input_shape=(width,height,3)))
+                                input_shape=(width,height,1)))
     # model.add(keras.layers.BatchNormalization())
 
     # 卷积层2，32个3*3的卷积核，输出维度为(48,48,32)。

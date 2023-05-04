@@ -58,45 +58,9 @@ epochs = args.epochs
 lr = args.lr
 batch_size = args.batch_size
 
-model = get_model(width, height, num_classes)
-
 train_generator, valid_generator, test_generator = get_data_generators(train_dir, valid_dir, test_dir, height, width, batch_size)
 
 train_num=train_generator.samples
 valid_num=valid_generator.samples
 print(train_num,valid_num)
-
-
-# 定义回调函数
-# 创建一个回调函数 checkpoint_cb，用于在训练期间监控验证集的准确率，并在每次验证集准确率提高时保存最好的模型参数。
-checkpoint_path = "best_model.h5"
-checkpoint_cb = keras.callbacks.ModelCheckpoint(
-    checkpoint_path, 
-    monitor='val_accuracy', 
-    verbose=1, 
-    save_best_only=True, 
-    save_weights_only=False, 
-    mode='max')
-
-# 定义了一个 TensorBoard 回调函数，用于在训练过程中将模型的训练情况写入到 TensorBoard 中，方便进行可视化分析。
-tensorboard_cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0, write_graph=True, write_images=False)
-
-# 创建了一个CSVLogger对象，用于将模型在训练过程中的一些指标记录到一个CSV文件中，比如训练集和验证集的损失函数值和准确率。
-csvlog_cb = keras.callbacks.CSVLogger('training_logs.csv')
-
-history = model.fit(
-    train_generator,
-    steps_per_epoch=train_num//batch_size,
-    epochs=epochs,
-    validation_data=valid_generator,
-    validation_steps=valid_num//batch_size,
-    callbacks=[tensorboard_cb, csvlog_cb, checkpoint_cb])
-
-# 在测试数据集上评估模型
-loss, accuracy = model.evaluate(test_generator, steps=test_generator.samples // batch_size)
-
-# 打印测试准确率
-print('Test accuracy:', accuracy)
-
-#调用函数将模型和log文件存到model_logs文件夹对应的以准确率命名的子文件夹下
-move_logs_and_model(round(accuracy, 3))
+print(train_generator[0][0].shape)

@@ -25,6 +25,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
     # seed为随机数种子，用于随机生成图像变换；
     # shuffle为是否打乱数据集顺序；
     # class_mode为分类模式，'categorical'表示多类别分类问题。
+    # color_mode='grayscale'生成灰度图像。
     train_generator=train_datagen.flow_from_directory(
         train_folder,
         target_size=(height,width),
@@ -32,6 +33,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         seed=7,
         shuffle=True,
         #shuffle=False,
+        color_mode='grayscale',
         class_mode='categorical')
 
     valid_datagen=keras.preprocessing.image.ImageDataGenerator(
@@ -42,6 +44,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         batch_size=batch_size,
         seed=7,
         shuffle=False,
+        color_mode='grayscale',
         class_mode='categorical')
 
     test_datagen=keras.preprocessing.image.ImageDataGenerator(
@@ -52,6 +55,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         batch_size=batch_size,
         seed=7,
         shuffle=False,
+        color_mode='grayscale',
         class_mode='categorical')
     
     return train_generator, valid_generator, test_generator
