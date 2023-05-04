@@ -58,7 +58,8 @@ epochs = args.epochs
 lr = args.lr
 batch_size = args.batch_size
 
-model = get_model(width, height, num_classes)
+# model = get_model(width, height, num_classes)
+model = get_model((width, height, 3), num_classes)
 
 train_generator, valid_generator, test_generator = get_data_generators(train_dir, valid_dir, test_dir, height, width, batch_size)
 

@@ -33,7 +33,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         seed=7,
         shuffle=True,
         #shuffle=False,
-        color_mode='grayscale',
+        #color_mode='grayscale',
         class_mode='categorical')
 
     valid_datagen=keras.preprocessing.image.ImageDataGenerator(
@@ -44,7 +44,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         batch_size=batch_size,
         seed=7,
         shuffle=False,
-        color_mode='grayscale',
+        #color_mode='grayscale',
         class_mode='categorical')
 
     test_datagen=keras.preprocessing.image.ImageDataGenerator(
@@ -55,7 +55,7 @@ def get_data_generators(train_folder, val_folder, test_folder, height, width, ba
         batch_size=batch_size,
         seed=7,
         shuffle=False,
-        color_mode='grayscale',
+        #color_mode='grayscale',
         class_mode='categorical')
     
     return train_generator, valid_generator, test_generator
