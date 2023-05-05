@@ -1,9 +1,13 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 class Reshape(nn.Module):
+    def __init__(self, *args):
+        super(Reshape, self).__init__()
+
     def forward(self, x):
-        return x.view(-1, 128 * 6 * 6)
+        return x.view(x.shape[0],-1)
 
 def vgg_block(num_convs, in_channels, out_channels):
     blk = []
@@ -32,7 +36,7 @@ def vgg(conv_arch, fc_features, fc_hidden_units):
                                 ))
     return net
 
-def get_model():
+def vggnet():
     conv_arch = ((1, 1, 32), (1, 32, 64), (2, 64, 128))
     fc_features = 128 * 6 * 6 # c * w * h
     fc_hidden_units = 1024 
@@ -40,96 +44,56 @@ def get_model():
     return model
 
 
-# import tensorflow as tf
-# from tensorflow import keras
-# from tensorflow.keras.applications.resnet50 import ResNet50
-# from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-# from tensorflow.keras.models import Model
+class Residual(nn.Module): 
+    def __init__(self, in_channels, out_channels, use_1x1conv=False, stride=1):
+        super(Residual, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=stride)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        if use_1x1conv:
+            self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride)
+        else:
+            self.conv3 = None
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.bn2 = nn.BatchNorm2d(out_channels)
 
-# def get_model(input_shape, num_classes):
-#     # 加载ResNet50预训练模型，去掉顶部全连接层
-#     base_model = ResNet50(weights='imagenet', include_top=False, input_shape=input_shape)
+    def forward(self, X):
+        Y = F.relu(self.bn1(self.conv1(X)))
+        Y = self.bn2(self.conv2(Y))
+        if self.conv3:
+            X = self.conv3(X)
+        return F.relu(Y + X)
 
-#     # 添加自定义的全连接层
-#     x = base_model.output
-#     x = GlobalAveragePooling2D()(x)
-#     x = Dense(1024, activation='relu')(x)
-#     predictions = Dense(num_classes, activation='softmax')(x)
-
-#     # 构建新模型
-#     model = Model(inputs=base_model.input, outputs=predictions)
     
-#     # 编译模型
-#     optimizer = tf.optimizers.Adam(lr=0.001)
-#     loss = 'categorical_crossentropy'
-#     metrics = ['accuracy']
-#     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+def resnet_block(in_channels, out_channels, num_residuals, first_block=False):
+    if first_block:
+        assert in_channels == out_channels # 第一个模块的通道数同输入通道数一致
+    blk = []
+    for i in range(num_residuals):
+        if i == 0 and not first_block:
+            blk.append(Residual(in_channels, out_channels, use_1x1conv=True, stride=2))
+        else:
+            blk.append(Residual(out_channels, out_channels))
+    return nn.Sequential(*blk)
+
+class GlobalAvgPool2d(nn.Module):
+    # 全局平均池化层可通过将池化窗口形状设置成输入的高和宽实现
+    def __init__(self):
+        super(GlobalAvgPool2d, self).__init__()
+    def forward(self, x):
+        return F.avg_pool2d(x, kernel_size=x.size()[2:])
+
+def resnet():
+    net = nn.Sequential(
+        nn.Conv2d(1, 64, kernel_size=7 , stride=2, padding=3),
+        nn.BatchNorm2d(64), 
+        nn.ReLU(),
+        nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
+
+    net.add_module("resnet_block1", resnet_block(64, 64, 2, first_block=True))
+    net.add_module("resnet_block2", resnet_block(64, 128, 2))
+    net.add_module("resnet_block3", resnet_block(128, 256, 2))
+    net.add_module("resnet_block4", resnet_block(256, 512, 2))
+    net.add_module("global_avg_pool", GlobalAvgPool2d()) # GlobalAvgPool2d的输出: (Batch, 512, 1, 1)
+    net.add_module("fc", nn.Sequential(Reshape(), nn.Linear(512, 7))) 
     
-#     model.summary()
-    
-#     return model
-
-# def get_model(width, height, num_classes):
-    # model = keras.models.Sequential()
-    # # 卷积层1，32个3*3的卷积核，输出维度为(48,48,32)，因为是灰度图像所以是(width,height,1)的
-    # model.add(keras.layers.Conv2D(filters=32,kernel_size=3,
-    #                             padding='same',activation='relu',
-    #                             input_shape=(width,height,1)))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 卷积层2，32个3*3的卷积核，输出维度为(48,48,32)。
-    # model.add(keras.layers.Conv2D(filters=32,kernel_size=3,
-    #                             padding='same',activation='relu'))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 池化层1，2*2的池化核，输出维度为(24,24,32)。
-    # model.add(keras.layers.MaxPool2D(pool_size=2))
-
-    # # 卷积层3，64个3*3的卷积核，输出维度为(24,24,64)。
-    # model.add(keras.layers.Conv2D(filters=64,kernel_size=3,
-    #                             padding='same',activation='relu'))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 卷积层4，64个3*3的卷积核，输出维度为(24,24,64)。
-    # model.add(keras.layers.Conv2D(filters=64,kernel_size=3,
-    #                             padding='same',activation='relu'))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 池化层2，2*2的池化核，输出维度为(12,12,64)。
-    # model.add(keras.layers.MaxPool2D(pool_size=2))
-
-    # # 卷积层5，128个3*3的卷积核，输出维度为(12,12,128)。
-    # model.add(keras.layers.Conv2D(filters=128,kernel_size=3,
-    #                             padding='same',activation='relu'))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 卷积层6，128个3*3的卷积核，输出维度为(12,12,128)。
-    # model.add(keras.layers.Conv2D(filters=128,kernel_size=3,
-    #                             padding='same',activation='relu'))
-    # # model.add(keras.layers.BatchNormalization())
-
-    # # 池化层3，2*2的池化核，输出维度为(6,6,128)。
-    # model.add(keras.layers.MaxPool2D(pool_size=2))
-
-    # # 扁平化层，将三维的矩阵转换为一维向量，输出维度为(66128)。
-    # model.add(keras.layers.Flatten())
-    # # model.add(keras.layers.AlphaDropout(0.5))
-
-    # # 全连接层1，128个神经元，输出维度为(128)。
-    # model.add(keras.layers.Dense(128,activation='relu'))
-
-    # # Dropout层，随机失活40%的神经元。
-    # model.add(keras.layers.Dropout(0.4))
-
-    # # 全连接层2，num_classes个神经元，输出维度为(num_classes)。
-    # model.add(keras.layers.Dense(num_classes,activation='softmax'))
-    # # adam=tf.optimizers.Adam(lr=0.01)
-    # # callbacks=[keras.callbacks.EarlyStopping(patience=5,min_delta=1e-3)]
-
-    # # 编译模型，其中使用adam优化器、交叉熵损失函数和精确度作为评估指标。
-    # model.compile(optimizer='adam',
-    #             loss='categorical_crossentropy',
-    #             metrics=['accuracy'],
-    #             )
-    # model.summary()
-    # return model
+    return net
