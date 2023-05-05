@@ -5,39 +5,81 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torchsummary import summary
-
+import matplotlib.pyplot as plt
 from model import vggnet,resnet
 from data_augmentation import get_data_generators
-
+from sklearn.metrics import confusion_matrix
+from draw import draw_confusion_matrix,draw_metrics
 import argparse
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "5" 
 
-def train(model, train_loader,device):
+def train(model, train_loader, device):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    train_loss_history = []
+    train_acc_history = []
+    valid_loss_history = []
+    valid_acc_history = []
 
     for epoch in range(NUM_EPOCHS):
         running_loss = 0.0
+        correct = 0
+        total = 0
+
+        # 训练
+        model.train()
         for i, data in enumerate(train_loader, 0):
             inputs, labels = data
-            # 移动到gpu上
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
-            #print(inputs.shape)
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item()
-            if i % 100 == 99:
-                print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 100))
-                running_loss = 0.0
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        train_loss = running_loss / len(train_loader)
+        train_acc = correct / total
+        print('epoch%d train loss: %.3f train acc: %.3f%%' % (epoch + 1, train_loss, train_acc*100))
+        train_loss_history.append(train_loss)
+        train_acc_history.append(train_acc)
+        
+
+        # 验证
+        model.eval()
+        valid_loss = 0.0
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in valid_loader:
+                images, labels = data
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                valid_loss += loss.item()
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+            valid_loss = valid_loss / len(valid_loader)
+            valid_acc = correct / total 
+            print('[%d] valid loss: %.3f valid acc: %.3f%%' % (epoch + 1, valid_loss, valid_acc*100))
+            valid_loss_history.append(valid_loss)
+            valid_acc_history.append(valid_acc)
+
+    return train_loss_history, train_acc_history, valid_loss_history, valid_acc_history
 
 def test(model, test_loader,device):
     correct = 0
     total = 0
+    y_true = []
+    y_pred = []
+
     with torch.no_grad():
         for data in test_loader:
             images, labels = data
@@ -46,9 +88,10 @@ def test(model, test_loader,device):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
-    print('Accuracy of the network on the test images: %d %%' % (100 * correct / total))
-    return correct/total*1.0
+            y_true += labels.cpu().numpy().tolist()
+            y_pred += predicted.cpu().numpy().tolist()
+    print('Accuracy of the network on the test images: %.3f %%' % (correct / total * 100))
+    return 1.0*correct/total,confusion_matrix(y_true, y_pred)
 
 
 if __name__ == '__main__':
@@ -57,7 +100,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Facial Expression Recognition')
     parser.add_argument('--batch-size', type=int, default=32, metavar='BS', help='input batch size for training')
-    parser.add_argument('--epochs', type=int, default=60, metavar='E', help='number of epochs to train')
+    parser.add_argument('--epochs', type=int, default=10, metavar='E', help='number of epochs to train')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate ')
     parser.add_argument('--model', type=str, default="vggnet", metavar='MODEL', help='choice the model(default: vggnet)')
     
@@ -88,9 +131,24 @@ if __name__ == '__main__':
     # summary(model,input_shape)
 
     # 训练和测试
-    train(model, train_loader,device)
-    accuracy = test(model, valid_loader,device)
+    train_loss, train_acc, val_loss, val_acc = train(model, train_loader,device)
+    accuracy, cm = test(model, valid_loader,device)
+
+    # 创建文件夹，保存模型，曲线图和混淆矩阵
+    folder_path = os.path.join("model",MODEL,'%.3f'%accuracy)
+    print(folder_path)
+    os.makedirs(folder_path)
 
     # 保存模型参数
-    filename = os.path.join('model','model_{}.pth'.format(accuracy))
-    torch.save(model.state_dict(), filename)
+    torch.save(model.state_dict(), os.path.join(folder_path,MODEL+'.h5'))
+
+    # 绘制曲线图
+    draw_metrics(train_loss,train_acc,val_loss,val_acc,os.path.join(folder_path,MODEL+'_metrics.jpg'))
+
+    # 绘制混淆矩阵图
+    draw_confusion_matrix(cm,os.path.join(folder_path,MODEL+'_confusion.jpg'))
+
+
+
+
+

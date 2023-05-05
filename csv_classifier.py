@@ -2,7 +2,9 @@ import os
 import csv
 import numpy as np
 from PIL import Image
+import matplotlib.pyplot as plt
 
+class_names=['anger','disgust','fear','happy','sad','surpriseds','normal']
 #将前面处理好的CSV格式的数据集转换成图像数据集
 datasets_path = 'data/'
 train_csv = os.path.join(datasets_path, 'train.csv')
@@ -31,4 +33,3 @@ for save_path, csv_file in [(train_set, train_csv), (val_set, val_csv)]:
             image_name = os.path.join(subfolder, '{:05d}.jpg'.format(i))
             #print(image_name)
             im.save(image_name)
-            #0-6、像素值48*48

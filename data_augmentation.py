@@ -2,7 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-def get_data_generators(path_train, path_vaild,batch_size):
+def get_data_generators(path_train, path_valid,batch_size):
     transforms_train = transforms.Compose([
         transforms.Grayscale(),#使用ImageFolder默认扩展为三通道，重新变回去就行
         transforms.RandomHorizontalFlip(),#随机翻转
@@ -15,7 +15,7 @@ def get_data_generators(path_train, path_vaild,batch_size):
     ])
 
     data_train = torchvision.datasets.ImageFolder(root=path_train,transform=transforms_train)
-    data_vaild = torchvision.datasets.ImageFolder(root=path_vaild,transform=transforms_vaild)
+    data_vaild = torchvision.datasets.ImageFolder(root=path_valid,transform=transforms_vaild)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_train,batch_size=batch_size,shuffle=True)
     valid_loader = torch.utils.data.DataLoader(dataset=data_vaild,batch_size=batch_size,shuffle=False)
