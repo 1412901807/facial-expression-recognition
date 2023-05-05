@@ -1,28 +1,73 @@
-from tensorflow import keras
-from tensorflow.keras.applications.resnet50 import ResNet50
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
-from tensorflow.keras.models import Model
+import torch
+import torch.nn as nn
 
-def get_model(input_shape, num_classes):
-    # 加载ResNet50预训练模型，去掉顶部全连接层
-    base_model = ResNet50(weights='imagenet', include_top=False, input_shape=input_shape)
+class Reshape(nn.Module):
+    def forward(self, x):
+        return x.view(-1, 128 * 6 * 6)
 
-    # 添加自定义的全连接层
-    x = base_model.output
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(1024, activation='relu')(x)
-    predictions = Dense(num_classes, activation='softmax')(x)
+def vgg_block(num_convs, in_channels, out_channels):
+    blk = []
+    for i in range(num_convs):
+        if i == 0:
+            blk.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
+        else:
+            blk.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+        blk.append(nn.ReLU())
+    blk.append(nn.MaxPool2d(kernel_size=2, stride=2))
+    return nn.Sequential(*blk)
 
-    # 构建新模型
-    model = Model(inputs=base_model.input, outputs=predictions)
-    
-    # 编译模型
-    optimizer = tf.optimizers.Adam(lr=0.001)
-    loss = 'categorical_crossentropy'
-    metrics = ['accuracy']
-    model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    
+def vgg(conv_arch, fc_features, fc_hidden_units):
+    net = nn.Sequential()
+    for i, (num_convs, in_channels, out_channels) in enumerate(conv_arch):
+        net.add_module("vgg_block_" + str(i+1), vgg_block(num_convs, in_channels, out_channels))
+    net.add_module("fc", nn.Sequential(
+                                Reshape(),
+                                nn.Linear(fc_features, fc_hidden_units),
+                                nn.ReLU(),
+                                nn.Dropout(0.5),
+                                nn.Linear(fc_hidden_units, fc_hidden_units),
+                                nn.ReLU(),
+                                nn.Dropout(0.5),
+                                nn.Linear(fc_hidden_units, 7)
+                                ))
+    return net
+
+def get_model():
+    conv_arch = ((1, 1, 32), (1, 32, 64), (2, 64, 128))
+    fc_features = 128 * 6 * 6 # c * w * h
+    fc_hidden_units = 1024 
+    model = vgg(conv_arch, fc_features, fc_hidden_units)
     return model
+
+
+# import tensorflow as tf
+# from tensorflow import keras
+# from tensorflow.keras.applications.resnet50 import ResNet50
+# from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+# from tensorflow.keras.models import Model
+
+# def get_model(input_shape, num_classes):
+#     # 加载ResNet50预训练模型，去掉顶部全连接层
+#     base_model = ResNet50(weights='imagenet', include_top=False, input_shape=input_shape)
+
+#     # 添加自定义的全连接层
+#     x = base_model.output
+#     x = GlobalAveragePooling2D()(x)
+#     x = Dense(1024, activation='relu')(x)
+#     predictions = Dense(num_classes, activation='softmax')(x)
+
+#     # 构建新模型
+#     model = Model(inputs=base_model.input, outputs=predictions)
+    
+#     # 编译模型
+#     optimizer = tf.optimizers.Adam(lr=0.001)
+#     loss = 'categorical_crossentropy'
+#     metrics = ['accuracy']
+#     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+    
+#     model.summary()
+    
+#     return model
 
 # def get_model(width, height, num_classes):
     # model = keras.models.Sequential()

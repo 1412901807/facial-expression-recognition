@@ -16,11 +16,11 @@ import csv
 datasets_path = 'data/'
 train_csv = os.path.join(datasets_path, 'train.csv')
 val_csv = os.path.join(datasets_path, 'val.csv')
-test_csv = os.path.join(datasets_path, 'test.csv')
+#test_csv = os.path.join(datasets_path, 'test.csv')
 train_set = os.path.join(datasets_path, 'train')
 val_set = os.path.join(datasets_path, 'val')
-test_set = os.path.join(datasets_path, 'test')
-for save_path, csv_file in [(train_set, train_csv), (val_set, val_csv), (test_set, test_csv)]:
+#test_set = os.path.join(datasets_path, 'test')
+for save_path, csv_file in [(train_set, train_csv), (val_set, val_csv)]:
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     num = 1

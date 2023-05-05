@@ -35,7 +35,7 @@ num_classes = 7
 # 读取参数
 parser = argparse.ArgumentParser(description='Training parameters')
 
-parser.add_argument('--epochs', type=int, default=50, help='number of epochs to train')
+parser.add_argument('--epochs', type=int, default=100, help='number of epochs to train')
 parser.add_argument('--lr', type=float, default=0.01, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=256, help='batch size')
 parser.add_argument('--height', type=int, default=48, help='image height')

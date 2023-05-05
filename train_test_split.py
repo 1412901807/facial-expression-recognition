@@ -18,7 +18,7 @@ datasets_path = 'data/'
 csv_file = database_path+'fer2013.csv'
 train_csv = datasets_path+'train.csv'
 val_csv = datasets_path+'val.csv'
-test_csv = datasets_path+'test.csv'
+# test_csv = datasets_path+'test.csv'
 with open(csv_file) as f:
     csvr = csv.reader(f)
     #提取表头并存储
@@ -31,10 +31,10 @@ with open(csv_file) as f:
     csv.writer(open(train_csv, 'w+'), lineterminator='\n').writerows([header[:-1]] + trn)
     print(len(trn))
     #取出所有被标记为验证集的行并和表头一起存到对应csv文件中
-    val = [row[:-1] for row in rows if row[-1] == 'PublicTest']
+    val = [row[:-1] for row in rows if row[-1] != 'Training']
     csv.writer(open(val_csv, 'w+'), lineterminator='\n').writerows([header[:-1]] + val)
     print(len(val))        
     #取出所有被标记为测试集的行并和表头一起存到对应csv文件中
-    tst = [row[:-1] for row in rows if row[-1] == 'PrivateTest']
-    csv.writer(open(test_csv, 'w+'), lineterminator='\n').writerows([header[:-1]] + tst)
-    print(len(tst))
+    # tst = [row[:-1] for row in rows if row[-1] == 'PrivateTest']
+    # csv.writer(open(test_csv, 'w+'), lineterminator='\n').writerows([header[:-1]] + tst)
+    # print(len(tst))
