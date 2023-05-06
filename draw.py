@@ -16,9 +16,9 @@ def draw_metrics(train_loss,train_acc,val_loss,val_acc,path):
 
     # 标记最终数据值
     plt.annotate('{:.3f}'.format(train_loss[-1]), xy=(len(train_loss)-1, train_loss[-1]), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='blue')
-    plt.annotate('{:.3f}%'.format(train_acc[-1]), xy=(len(train_acc)-1, train_acc[-1]), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='orange')
-    plt.annotate('{:.3f}'.format(val_loss[-1]), xy=(len(val_loss)-1, val_loss[-1]*100), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='green')
-    plt.annotate('{:.3f}%'.format(val_acc[-1]), xy=(len(val_acc)-1, val_acc[-1]*100), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='red')
+    plt.annotate('{:.3f}%'.format(train_acc[-1]*100), xy=(len(train_acc)-1, train_acc[-1]), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='orange')
+    plt.annotate('{:.3f}'.format(val_loss[-1]), xy=(len(val_loss)-1, val_loss[-1]), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='green')
+    plt.annotate('{:.3f}%'.format(val_acc[-1]*100), xy=(len(val_acc)-1, val_acc[-1]), xytext=(-20, 10), textcoords='offset points', fontsize=10, color='red')
 
     plt.title('Training and Validation Metrics')
     plt.xlabel('Epoch')

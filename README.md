@@ -136,3 +136,10 @@ python train_test_split.py
 python csv_classifier.py
 python train.py --batch-size=32 --epochs=60 --lr=0.001 --model=vggnet
 ```
+resnet 58.9%
+![Alt text](model/resnet/0.589/resnet_metrics.jpg?raw=true "val_count_hist")
+![Alt text](model/resnet/0.589/resnet_confusion.jpg?raw=true "val_count_hist")
+
+vggnet 56.4%
+![Alt text](model/vggnet/0.564/vggnet_metrics.jpg?raw=true "val_count_hist")
+![Alt text](model/vggnet/0.564/vggnet_confusion.jpg?raw=true "val_count_hist")
