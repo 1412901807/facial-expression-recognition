@@ -100,7 +100,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Facial Expression Recognition')
     parser.add_argument('--batch-size', type=int, default=32, metavar='BS', help='input batch size for training')
-    parser.add_argument('--epochs', type=int, default=10, metavar='E', help='number of epochs to train')
+    parser.add_argument('--epochs', type=int, default=60, metavar='E', help='number of epochs to train')
     parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate ')
     parser.add_argument('--model', type=str, default="vggnet", metavar='MODEL', help='choice the model(default: vggnet)')
     

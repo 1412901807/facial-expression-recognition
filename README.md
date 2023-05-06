@@ -7,14 +7,14 @@
 git clone https://github.com/1412901807/facial-expression-recognition.git
 conda create -n FER python=3.6
 conda activate FER
+conda install numpy
 conda install matplotlib
-conda install pandas
-conda install tensorflow-gpu==2.2.0
+在pytorch官网安装适合自己cuda版本的torch
 ```
 
 
 ## 数据集
-下载fer2013.csv文件并将其放在data文件夹下
+手动创建data文件夹，下载fer2013.csv文件并将其放在data文件夹下
 
 训练集和验证集不同表情图片数量分布
 ![Alt text](pic/train_count_hist.png?raw=true "train_count_hist")
@@ -134,9 +134,5 @@ Sequential(
 ```bash
 python train_test_split.py 
 python csv_classifier.py
-python train_test.py
-```
-
-## 使用
-```bash
+python train.py --batch-size=32 --epochs=60 --lr=0.001 --model=vggnet
 ```
