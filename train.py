@@ -12,7 +12,8 @@ from sklearn.metrics import confusion_matrix
 from draw import draw_confusion_matrix,draw_metrics
 import argparse
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "5" 
+# 指定gpu
+# os.environ["CUDA_VISIBLE_DEVICES"] = "5" 
 
 def train(model, train_loader, device):
     criterion = nn.CrossEntropyLoss()
